@@ -1,0 +1,5 @@
+interface:
+  display_name: "Record a verdict"
+  short_description: "Close a IdeaSpace idea as approved or killed, with its reason."
+policy:
+  allow_implicit_invocation: false

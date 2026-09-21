@@ -1,0 +1,26 @@
+{
+  "name": "ms",
+  "version": "0.1.0",
+  "description": "Capture ideas into the IdeaSpace pipeline, see which are waiting on you, and close them with a recorded verdict.",
+  "author": {
+    "name": "Noor Alam Shuvo"
+  },
+  "repository": "https://github.com/twentyTwo/idea-space",
+  "keywords": [
+    "ideas",
+    "github-issues",
+    "research",
+    "idea-space"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "IdeaSpace",
+    "shortDescription": "Capture ideas and record verdicts in IdeaSpace.",
+    "developerName": "Noor Alam Shuvo",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "idea-space",
+  "interface": {
+    "displayName": "IdeaSpace"
+  },
+  "plugins": [
+    {
+      "name": "ms",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ms"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

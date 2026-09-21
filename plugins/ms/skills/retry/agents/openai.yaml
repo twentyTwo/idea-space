@@ -1,0 +1,5 @@
+interface:
+  display_name: "Retry an idea"
+  short_description: "Re-run research and grill for a blocked idea, or re-grill one."
+policy:
+  allow_implicit_invocation: false

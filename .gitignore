@@ -1,0 +1,11 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Obsidian (local workspace state, not content)
+.obsidian/workspace*
+.obsidian/cache
