@@ -5,12 +5,12 @@ description: Show every open IdeaSpace idea by stage, with the research recommen
 
 # Idea status
 
-## Running `ms`
+## Running `is`
 
-This plugin ships one script, `scripts/ms`, two directories above this skill's own
-directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/ms" …`.
+This plugin ships one script, `scripts/is`, two directories above this skill's own
+directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/is" …`.
 
-It acts on the current directory's GitHub repo. If it says the repo has no `ms:idea`
+It acts on the current directory's GitHub repo. If it says the repo has no `is:idea`
 label, the user is working somewhere else: ask for their IdeaSpace repo and pass
 `--repo <owner/name>` before the command. If it says the labels need migrating, say
 so and point to the setup skill — do not reconstruct the status by hand with `gh`
@@ -18,10 +18,10 @@ against old label names; that hides the problem instead of reporting it.
 
 ## Steps
 
-1. Run `ms status`.
+1. Run `is status`.
 
-2. Present it grouped by stage, in this order: `ms:ready` first — those are waiting on
-   the user — then `ms:blocked`, then `ms:running` and `ms:captured`.
+2. Present it grouped by stage, in this order: `is:ready` first — those are waiting on
+   the user — then `is:blocked`, then `is:running` and `is:captured`.
 
 3. For each ready idea, give the research recommendation and the grill's kill shot as
    the script prints them. **Do not add your own verdict** or steer the user toward

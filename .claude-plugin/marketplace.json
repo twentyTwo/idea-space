@@ -1,13 +1,13 @@
 {
-  "name": "idea-space",
+  "name": "twentyTwo",
   "description": "IdeaSpace: a GitHub-issues idea pipeline that researches and grills every idea before you decide.",
   "owner": {
     "name": "Noor Alam Shuvo"
   },
   "plugins": [
     {
-      "name": "ms",
-      "source": "./plugins/ms",
+      "name": "idea-space",
+      "source": "./plugins/idea-space",
       "description": "Capture ideas into the IdeaSpace pipeline, see which are waiting on you, and close them with a recorded verdict."
     }
   ]

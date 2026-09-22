@@ -18,7 +18,7 @@ permissions:
 jobs:
   guard:
     # Only idea issues. Every other closed issue in the repo falls through here.
-    if: contains(github.event.issue.labels.*.name, 'ms:idea')
+    if: contains(github.event.issue.labels.*.name, 'is:idea')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,14 +37,14 @@ jobs:
           set -uo pipefail
           issue=$(gh issue view "$ISSUE" --json labels,comments) || exit 1
           labels=$(jq -r '.labels[].name' <<<"$issue")
-          verdicts=$(grep -cE '^ms:(approved|killed)$' <<<"$labels")
+          verdicts=$(grep -cE '^is:(approved|killed)$' <<<"$labels")
 
           if [ "$verdicts" -eq 0 ]; then
             gh issue comment "$ISSUE" --body "$(cat <<'EOF'
           <!-- ideaspace:verdict-guard -->
           **Reopened — no verdict label.**
 
-          This idea was closed carrying neither `ms:approved` nor `ms:killed`, so there is
+          This idea was closed carrying neither `is:approved` nor `is:killed`, so there is
           no record of what was decided. Close it again with exactly one of them, plus a
           comment giving the reason in one sentence.
 
@@ -61,7 +61,7 @@ jobs:
           <!-- ideaspace:verdict-guard -->
           **Reopened — two verdict labels.**
 
-          This idea is carrying both `ms:approved` and `ms:killed`. Remove whichever is
+          This idea is carrying both `is:approved` and `is:killed`. Remove whichever is
           wrong, then close it again.
           EOF
           )" || exit 1

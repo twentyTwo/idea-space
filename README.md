@@ -10,7 +10,7 @@ There is no database and no tracking file. **The issue is the idea, its labels a
 stage, its comments are the work, and closing it is the verdict.** Everything in this
 guide reads or writes those four things and nothing else.
 
-This guide covers installing the `ms` plugin and using the pipeline day to day. The
+This guide covers installing the `idea-space` plugin and using the pipeline day to day. The
 exact rules the pipeline enforces — the full label state machine, what research and
 the grill are and aren't allowed to claim — live in [CLAUDE.md](CLAUDE.md). This guide
 won't repeat them; it'll point to them.
@@ -20,18 +20,18 @@ won't repeat them; it'll point to them.
 ```
 # Claude Code
 /plugin marketplace add twentyTwo/idea-space
-/plugin install ms@idea-space
+/plugin install idea-space@twentyTwo
 
 # Codex
 codex plugin marketplace add twentyTwo/idea-space
-# then install "ms" from /plugins and start a new session
+# then install "idea-space" from /plugins and start a new session
 ```
 
 Inside your IdeaSpace repo, first thing, either tool:
 
 ```
-/ms:setup          (Claude Code)
-$ms:setup          (Codex)
+/idea-space:setup          (Claude Code)
+$idea-space:setup          (Codex)
 ```
 
 That creates the labels the pipeline runs on. Then capture an idea and you're running.
@@ -41,17 +41,17 @@ That creates the labels the pipeline runs on. Then capture an idea and you're ru
 ```
    you file it                  automatic                     you decide
   ┌────────────┐   ┌──────────────────────────────┐   ┌──────────────────────┐
-  │  ms:idea   │──▶│  ms:captured ──▶ ms:running   │──▶│      ms:ready         │
+  │  is:idea   │──▶│  is:captured ──▶ is:running   │──▶│      is:ready         │
   │ + captured │   │  (research, then the grill)   │   │  (both comments in)  │
   └────────────┘   └──────────────────┬────────────┘   └───────────┬───────────┘
-                                       │ a step fails                │ ms verdict
+                                       │ a step fails                │ is verdict
                                        ▼                              ▼
-                                  ms:blocked              closed, ms:approved
-                                                              or ms:killed
+                                  is:blocked              closed, is:approved
+                                                              or is:killed
 ```
 
 Filing the idea and giving the verdict are the only two things a human has to do. The
-`ms` plugin exists to make those two things — plus checking status and recovering from
+`idea-space` plugin exists to make those two things — plus checking status and recovering from
 a failure — commands instead of hand-edited labels.
 
 ## Requirements
@@ -72,7 +72,7 @@ a failure — commands instead of hand-edited labels.
 
 ```
 /plugin marketplace add twentyTwo/idea-space
-/plugin install ms@idea-space
+/plugin install idea-space@twentyTwo
 ```
 
 **Codex**
@@ -81,26 +81,26 @@ a failure — commands instead of hand-edited labels.
 codex plugin marketplace add twentyTwo/idea-space
 ```
 
-then open `/plugins`, install `ms`, and start a new session — Codex only picks up a
+then open `/plugins`, install `idea-space`, and start a new session — Codex only picks up a
 plugin's skills on the next session after install.
 
 Both read the same five skills and run the same script
-([plugins/ms/scripts/ms](plugins/ms/scripts/ms)), so the two tools behave identically.
-See [plugins/ms/README.md](plugins/ms/README.md) for the plugin's own reference.
+([plugins/idea-space/scripts/is](plugins/idea-space/scripts/is)), so the two tools behave identically.
+See [plugins/idea-space/README.md](plugins/idea-space/README.md) for the plugin's own reference.
 
 ## First use in a repo
 
 Run setup once per repo, from either tool:
 
 ```
-/ms:setup          (Claude Code)
-$ms:setup          (Codex)
+/idea-space:setup          (Claude Code)
+$idea-space:setup          (Codex)
 ```
 
-It creates the seven labels the pipeline needs: `ms:idea`, the four stages
-(`ms:captured` `ms:running` `ms:ready` `ms:blocked`), and the two verdicts
-(`ms:approved` `ms:killed`). Safe to run more than once — a label already in place is
-left alone, and if this repo predates the `ms:` prefix, an old bare label (`captured`)
+It creates the seven labels the pipeline needs: `is:idea`, the four stages
+(`is:captured` `is:running` `is:ready` `is:blocked`), and the two verdicts
+(`is:approved` `is:killed`). Safe to run more than once — a label already in place is
+left alone, and if this repo predates the `is:` prefix, an old bare label (`captured`)
 is *renamed* rather than recreated, so nothing already filed under it loses its stage.
 
 It refuses to touch labels while a run is in flight, or if the default branch's
@@ -112,8 +112,8 @@ issue mid-run. If it refuses, it says which of the two is blocking it.
 ### Capture an idea
 
 ```
-/ms:capture         (Claude Code)
-$ms:capture         (Codex)
+/idea-space:capture         (Claude Code)
+$idea-space:capture         (Codex)
 ```
 
 or just say it in conversation — "save this idea", "I want to capture something" —
@@ -127,26 +127,26 @@ start on their own; nothing else to do.
 ### Check what's waiting on you
 
 ```
-/ms:status          (Claude Code)
-$ms:status          (Codex)
+/idea-space:status          (Claude Code)
+$idea-space:status          (Codex)
 ```
 
-Lists every open idea by stage. For anything `ms:ready`, you get the research
+Lists every open idea by stage. For anything `is:ready`, you get the research
 recommendation and the grill's kill shot right there — usually enough to decide
 without opening the issue.
 
 ### Give a verdict
 
 ```
-/ms:verdict          (Claude Code)
-$ms:verdict          (Codex)
+/idea-space:verdict          (Claude Code)
+$idea-space:verdict          (Codex)
 ```
 
 Explicit only — it won't trigger from ordinary conversation, since a verdict is a
 decision you make on purpose. Give it the issue number, `approved` or `killed`, and
 your reason. **The reason has to be yours.** The skill won't invent one from the
 research or the grill, however obvious the call looks — a killed idea's reason is the
-entire point of keeping it around, so the next time this idea comes up, `ms:capture`
+entire point of keeping it around, so the next time this idea comes up, `idea-space:capture`
 can tell you why it already died.
 
 Behind the scenes this is three steps done as one: set the verdict label, post the
@@ -157,28 +157,28 @@ either.
 ### When something breaks
 
 ```
-/ms:retry            (Claude Code)
-$ms:retry            (Codex)
+/idea-space:retry            (Claude Code)
+$idea-space:retry            (Codex)
 ```
 
-Explicit only. An issue lands on `ms:blocked` when a step fails, with a comment naming
+Explicit only. An issue lands on `is:blocked` when a step fails, with a comment naming
 which one. Two moves, and it's picked for you based on what failed:
 
-- Research failed → full retry, back to `ms:captured`, research and grill both run again.
+- Research failed → full retry, back to `is:captured`, research and grill both run again.
 - Only the grill failed → grill-only retry, reusing the research that's already posted.
 
 It won't touch an issue with a run in flight — that would just be refused by the
-workflow anyway — and it won't quietly rerun research on something already `ms:ready`.
+workflow anyway — and it won't quietly rerun research on something already `is:ready`.
 
 ## Command reference
 
 | Claude Code | Codex | Can trigger from conversation? | Does |
 |---|---|---|---|
-| `/ms:capture` | `$ms:capture` | Yes | Dedupe-check, then file an idea |
-| `/ms:status` | `$ms:status` | Yes | List open ideas, grouped by stage |
-| `/ms:verdict` | `$ms:verdict` | No | Label, comment the reason, close |
-| `/ms:retry` | `$ms:retry` | No | Re-run a blocked idea, or re-grill one |
-| `/ms:setup` | `$ms:setup` | No | Create or migrate the `ms:` labels |
+| `/idea-space:capture` | `$idea-space:capture` | Yes | Dedupe-check, then file an idea |
+| `/idea-space:status` | `$idea-space:status` | Yes | List open ideas, grouped by stage |
+| `/idea-space:verdict` | `$idea-space:verdict` | No | Label, comment the reason, close |
+| `/idea-space:retry` | `$idea-space:retry` | No | Re-run a blocked idea, or re-grill one |
+| `/idea-space:setup` | `$idea-space:setup` | No | Create or migrate the `is:` labels |
 
 ## Working without the plugin
 
@@ -186,21 +186,21 @@ Every command is a thin wrapper around one standalone script — no AI tool requ
 Clone this repo, then from inside it (or with `--repo owner/name`, from anywhere):
 
 ```bash
-bash plugins/ms/scripts/ms status
-bash plugins/ms/scripts/ms dupes usage tracker
-bash plugins/ms/scripts/ms capture --title "Idea title" <<'BODY'
+bash plugins/idea-space/scripts/is status
+bash plugins/idea-space/scripts/is dupes usage tracker
+bash plugins/idea-space/scripts/is capture --title "Idea title" <<'BODY'
 The idea, in as much detail as you have.
 BODY
-bash plugins/ms/scripts/ms verdict 5 killed "Reason it's dead, in one sentence."
-bash plugins/ms/scripts/ms retry 12 --grill
-bash plugins/ms/scripts/ms setup
+bash plugins/idea-space/scripts/is verdict 5 killed "Reason it's dead, in one sentence."
+bash plugins/idea-space/scripts/is retry 12 --grill
+bash plugins/idea-space/scripts/is setup
 ```
 
 On a shell without heredocs (PowerShell), use `--body-file <path>` in place of piping
 the body on stdin. Set `IDEASPACE_REPO=owner/name` once, or pass `--repo owner/name`
 before the command, to run it from outside the ideas repo.
 
-`ms help` prints all of this from the script itself.
+`is help` prints all of this from the script itself.
 
 ### Dropping to raw `gh`
 
@@ -210,7 +210,7 @@ plain `gh`, working against the labels documented in [CLAUDE.md](CLAUDE.md):
 
 ```bash
 gh issue view <n> --comments
-gh issue list --state open --label ms:ready
+gh issue list --state open --label is:ready
 gh workflow run research.yml -f issue=<n>     # re-grill alone
 ```
 
@@ -220,23 +220,23 @@ exact name, and two stage labels on one issue is a state the pipeline doesn't ex
 
 ## Troubleshooting
 
-**"`<repo>` has no ms:idea label."** Either you're in the wrong repo — pass
-`--repo owner/name` or set `IDEASPACE_REPO` — or `ms setup` hasn't been run here yet.
+**"`<repo>` has no is:idea label."** Either you're in the wrong repo — pass
+`--repo owner/name` or set `IDEASPACE_REPO` — or `is setup` hasn't been run here yet.
 
-**An idea has been `ms:running` for a long time.** Check the workflow run itself:
+**An idea has been `is:running` for a long time.** Check the workflow run itself:
 `gh run list --workflow=research.yml`. If it's actually finished (crashed, or GitHub
 silently dropped it), the issue is stuck holding a label no step will ever clear —
-fix it by hand: `gh issue edit <n> --remove-label ms:running --add-label ms:blocked`,
-then `ms retry <n>`.
+fix it by hand: `gh issue edit <n> --remove-label is:running --add-label is:blocked`,
+then `is retry <n>`.
 
 **An idea reopened itself right after you closed it.** That's the verdict guard: it
 reopens any close missing a verdict label, or carrying both. Read its comment for
 which, fix it, and close again.
 
-**`ms setup` refuses to rename anything.** It's protecting you from stranding a run
+**`is setup` refuses to rename anything.** It's protecting you from stranding a run
 mid-flight, or from renaming out from under a workflow that's still matching the old
 label names. Its error names which; the fix is either to wait for the run in flight,
-or to merge the `ms:`-aware workflow to the default branch first.
+or to merge the `is:`-aware workflow to the default branch first.
 
 ## Repo layout
 
@@ -248,8 +248,8 @@ CLAUDE.md                      the rules — read this for the exact state machi
 .github/prompts/
   research.md                  what the research agent is told to do
   grill.md                     what the grill agent is told to do
-plugins/ms/                    the plugin — skills, and the one script behind them
-  scripts/ms                   the actual logic; everything else calls this
+plugins/idea-space/            the plugin — skills, and the one script behind them
+  scripts/is                   the actual logic; everything else calls this
   skills/                      capture, status, verdict, retry, setup
 .claude-plugin/marketplace.json   this repo as a Claude Code marketplace
 .agents/plugins/marketplace.json this repo as a Codex marketplace

@@ -8,12 +8,12 @@ description: File a new idea into the IdeaSpace pipeline, which then researches 
 The issue body *is* the idea. Research and critique arrive later as comments, added
 by the pipeline. So capture what the user said, not an improved version of it.
 
-## Running `ms`
+## Running `is`
 
-This plugin ships one script, `scripts/ms`, two directories above this skill's own
-directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/ms" …`.
+This plugin ships one script, `scripts/is`, two directories above this skill's own
+directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/is" …`.
 
-It acts on the current directory's GitHub repo. If it says the repo has no `ms:idea`
+It acts on the current directory's GitHub repo. If it says the repo has no `is:idea`
 label, the user is working somewhere else: ask for their IdeaSpace repo and pass
 `--repo <owner/name>` before the command. When the script refuses, relay its message —
 never work around it with `gh` directly. Its refusals are the pipeline's rules.
@@ -27,7 +27,7 @@ never work around it with `gh` directly. Its refusals are the pipeline's rules.
 
 2. **Check it has not been had before.** Pick two or three distinctive key terms:
 
-       ms dupes <terms>
+       is dupes <terms>
 
    If nothing comes back, try once more with different wording — a synonym for the
    core noun is usually enough.
@@ -42,7 +42,7 @@ never work around it with `gh` directly. Its refusals are the pipeline's rules.
 
    In bash, pass the body on stdin:
 
-       bash "<plugin root>/scripts/ms" capture --title "<title>" <<'BODY'
+       bash "<plugin root>/scripts/is" capture --title "<title>" <<'BODY'
        <body>
        BODY
 
@@ -50,4 +50,4 @@ never work around it with `gh` directly. Its refusals are the pipeline's rules.
    pass `--body-file <path>` instead.
 
 5. **Report** the issue URL, and that research and grill are running now. The status
-   skill shows when it reaches `ms:ready`.
+   skill shows when it reaches `is:ready`.

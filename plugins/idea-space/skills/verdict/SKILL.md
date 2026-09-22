@@ -7,15 +7,15 @@ disable-model-invocation: true
 # Record a verdict
 
 Closing an idea takes three things together: exactly one verdict label, a comment
-giving the reason, and the close itself. `ms verdict` does all three, in the order the
+giving the reason, and the close itself. `is verdict` does all three, in the order the
 repo's verdict guard checks them. Always use it; never close an idea issue by hand.
 
-## Running `ms`
+## Running `is`
 
-This plugin ships one script, `scripts/ms`, two directories above this skill's own
-directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/ms" …`.
+This plugin ships one script, `scripts/is`, two directories above this skill's own
+directory. Run it with bash, by absolute path: `bash "<plugin root>/scripts/is" …`.
 
-It acts on the current directory's GitHub repo. If it says the repo has no `ms:idea`
+It acts on the current directory's GitHub repo. If it says the repo has no `is:idea`
 label, the user is working somewhere else: ask for their IdeaSpace repo and pass
 `--repo <owner/name>` before the command. When the script refuses, relay its message —
 never work around it with `gh` directly. Its refusals are the pipeline's rules.
@@ -33,7 +33,7 @@ never work around it with `gh` directly. Its refusals are the pipeline's rules.
 
 3. Run:
 
-       bash "<plugin root>/scripts/ms" verdict <n> <approved|killed> "<reason>"
+       bash "<plugin root>/scripts/is" verdict <n> <approved|killed> "<reason>"
 
 4. Report the result. The script refuses an idea that is still running, an approval of
    a blocked idea that was never researched, and anything already closed; relay which.

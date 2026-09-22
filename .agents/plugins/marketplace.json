@@ -1,14 +1,14 @@
 {
-  "name": "idea-space",
+  "name": "twentyTwo",
   "interface": {
     "displayName": "IdeaSpace"
   },
   "plugins": [
     {
-      "name": "ms",
+      "name": "idea-space",
       "source": {
         "source": "local",
-        "path": "./plugins/ms"
+        "path": "./plugins/idea-space"
       },
       "policy": {
         "installation": "AVAILABLE",

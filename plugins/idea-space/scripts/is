@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ms — the human half of the IdeaSpace idea pipeline.
+# is — the human half of the IdeaSpace idea pipeline.
 #
 # The GitHub Actions workflows own research and grill. Every command here is one of
 # the transitions CLAUDE.md assigns to "a human, deliberately": filing an idea,
@@ -12,23 +12,23 @@
 
 set -uo pipefail
 
-STAGES='^ms:(captured|running|ready|blocked)$'
+STAGES='^is:(captured|running|ready|blocked)$'
 
-die() { printf 'ms: %s\n' "$*" >&2; exit 1; }
+die() { printf 'is: %s\n' "$*" >&2; exit 1; }
 
 usage() {
   cat <<'EOF'
-ms — the human half of the IdeaSpace idea pipeline
+is — the human half of the IdeaSpace idea pipeline
 
-  ms setup                           create or migrate the ms: labels
-  ms dupes <key terms>               killed and in-flight ideas that look similar
-  ms capture --title "<title>" [--body-file <path>]
+  is setup                           create or migrate the is: labels
+  is dupes <key terms>               killed and in-flight ideas that look similar
+  is capture --title "<title>" [--body-file <path>]
                                      file an idea and start research (body on stdin
                                      unless --body-file is given)
-  ms status                          every open idea, grouped by stage
-  ms verdict <n> approved|killed "<reason>"
+  is status                          every open idea, grouped by stage
+  is verdict <n> approved|killed "<reason>"
                                      label, record the reason, and close
-  ms retry <n> [--grill]             re-run a blocked idea, or re-grill it alone
+  is retry <n> [--grill]             re-run a blocked idea, or re-grill it alone
 
 The ideas repo is --repo owner/name (given before the command), else $IDEASPACE_REPO,
 else the current directory's repo.
@@ -50,11 +50,11 @@ resolve_repo() {
 # Every command but setup needs the labels to exist. Saying so up front beats a
 # confusing gh error halfway through a verdict.
 require_labels() {
-  gh label list --limit 200 --json name --jq '.[].name' | grep -qx 'ms:idea' \
-    || die "$GH_REPO has no ms:idea label. Wrong repo? Otherwise run: ms setup"
+  gh label list --limit 200 --json name --jq '.[].name' | grep -qx 'is:idea' \
+    || die "$GH_REPO has no is:idea label. Wrong repo? Otherwise run: is setup"
 }
 
-# One issue's state and labels as a single line: "OPEN ms:idea ms:ready".
+# One issue's state and labels as a single line: "OPEN is:idea is:ready".
 issue_line() {
   gh issue view "$1" --json state,labels --jq '.state + " " + ([.labels[].name] | join(" "))' \
     || die "could not read issue #$1 on $GH_REPO"
@@ -76,9 +76,9 @@ cmd_setup() {
     || die "could not read labels on $GH_REPO"
 
   # A bare label that already exists is renamed, never recreated: renaming carries it
-  # to every issue that holds it, while a fresh ms: label would orphan them all.
+  # to every issue that holds it, while a fresh is: label would orphan them all.
   for n in $names; do
-    grep -qx "ms:$n" <<<"$existing" && continue
+    grep -qx "is:$n" <<<"$existing" && continue
     grep -qx "$n" <<<"$existing" && pending="$pending $n"
   done
 
@@ -87,8 +87,8 @@ cmd_setup() {
     # pipeline dead, so check what the default branch actually runs.
     gh api -H 'Accept: application/vnd.github.raw' \
         "repos/$GH_REPO/contents/.github/workflows/research.yml" 2>/dev/null \
-      | grep -q "ms:captured" \
-      || die "the default branch's research.yml still matches bare label names. Merge the ms: workflow first, then rerun setup."
+      | grep -q "is:captured" \
+      || die "the default branch's research.yml still matches bare label names. Merge the is: workflow first, then rerun setup."
 
     # And never rename out from under a run in flight: its own label swap would fail.
     [ -z "$(gh issue list --label running --state open --json number --jq '.[].number')" ] \
@@ -97,15 +97,15 @@ cmd_setup() {
 
   local color desc
   while IFS='|' read -r n color desc; do
-    if grep -qx "ms:$n" <<<"$existing"; then
-      echo "ok       ms:$n"
+    if grep -qx "is:$n" <<<"$existing"; then
+      echo "ok       is:$n"
     elif grep -qx "$n" <<<"$existing"; then
-      gh label edit "$n" --name "ms:$n" >/dev/null || die "could not rename $n"
-      echo "renamed  $n -> ms:$n"
+      gh label edit "$n" --name "is:$n" >/dev/null || die "could not rename $n"
+      echo "renamed  $n -> is:$n"
     else
-      gh label create "ms:$n" --color "$color" --description "$desc" >/dev/null \
-        || die "could not create ms:$n"
-      echo "created  ms:$n"
+      gh label create "is:$n" --color "$color" --description "$desc" >/dev/null \
+        || die "could not create is:$n"
+      echo "created  is:$n"
     fi
   done <<'EOF'
 idea|5319e7|Marks an issue as an idea
@@ -121,19 +121,19 @@ EOF
 # CLAUDE.md: search killed ideas before filing a new one, and surface in-flight ones
 # too. This only reports; whether a match is close enough is the human's call.
 cmd_dupes() {
-  [ $# -gt 0 ] || die 'usage: ms dupes <key terms>'
+  [ $# -gt 0 ] || die 'usage: is dupes <key terms>'
   local terms="$*" killed open
 
   # The kill reason is the newest comment a human wrote — the same reading the verdict
   # guard uses. First line only; the issue has the rest.
-  killed=$(gh issue list --state closed --label ms:killed --search "$terms" --limit 10 \
+  killed=$(gh issue list --state closed --label is:killed --search "$terms" --limit 10 \
       --json number,title,comments --jq '.[] |
         "#\(.number)  \(.title)\n      reason: \(
           ([.comments[] | select(.author.login | test("^github-actions") | not)] | last | .body)
           // "(no reason recorded)" | split("\n")[0])"') \
     || die "could not search killed ideas"
 
-  open=$(gh issue list --state open --label ms:idea --search "$terms" --limit 10 \
+  open=$(gh issue list --state open --label is:idea --search "$terms" --limit 10 \
       --json number,title,labels --jq '.[] |
         "#\(.number)  [\([.labels[].name | select(test("'"$STAGES"'"))] | join(","))]  \(.title)"') \
     || die "could not search open ideas"
@@ -154,7 +154,7 @@ cmd_capture() {
       *) die "unknown argument: $1" ;;
     esac
   done
-  [ -n "$title" ] || die 'usage: ms capture --title "<title>" [--body-file <path>]'
+  [ -n "$title" ] || die 'usage: is capture --title "<title>" [--body-file <path>]'
 
   local body url n
   if [ -n "$body_file" ]; then
@@ -167,14 +167,14 @@ cmd_capture() {
   fi
   [ -n "${body//[[:space:]]/}" ] || die 'the idea body is empty — pipe it on stdin'
 
-  url=$(gh issue create --title "$title" --body "$body" --label ms:idea) \
+  url=$(gh issue create --title "$title" --body "$body" --label is:idea) \
     || die 'could not create the issue'
   n=${url##*/}
 
-  # ms:captured goes on as its own edit, not at creation. The pipeline triggers on the
+  # is:captured goes on as its own edit, not at creation. The pipeline triggers on the
   # labeled event, and a separate add is the one path certain to fire it.
-  gh issue edit "$n" --add-label ms:captured >/dev/null \
-    || die "filed $url but could not add ms:captured, so research has not started. Add the label by hand."
+  gh issue edit "$n" --add-label is:captured >/dev/null \
+    || die "filed $url but could not add is:captured, so research has not started. Add the label by hand."
 
   echo "$url"
 }
@@ -183,16 +183,16 @@ cmd_status() {
   local out
   # Ready ideas show the two lines a verdict turns on: what research recommended and
   # the grill's kill shot. Blocked ones show which step failed.
-  out=$(gh issue list --state open --label ms:idea --limit 100 \
+  out=$(gh issue list --state open --label is:idea --limit 100 \
       --json number,title,labels,comments --jq '
     def stage: [.labels[].name | select(test("'"$STAGES"'"))] | join(",");
     def grab(re): [.comments[].body | capture(re) | .v] | last;
     sort_by(.number) | .[] | stage as $s
     | "#\(.number)  [\(if $s == "" then "no stage" else $s end)]  \(.title)"
-      + (if $s == "ms:ready" then
+      + (if $s == "is:ready" then
            "\n      research:  \(grab("RECOMMENDATION:[*_\\s]*(?<v>[^\\n]+)") // "?")"
            + "\n      kill shot: \(grab("KILL SHOT:[*_\\s]*(?<v>[^\\n]+)") // "?")"
-         elif $s == "ms:blocked" then
+         elif $s == "is:blocked" then
            "\n      \(grab("(?<v>(Research|Grill) failed at [^.]+)") // "no failure comment found")"
          else "" end)') \
     || die "could not list ideas on $GH_REPO"
@@ -201,7 +201,7 @@ cmd_status() {
 }
 
 cmd_verdict() {
-  [ $# -ge 3 ] || die 'usage: ms verdict <issue> approved|killed "<one-sentence reason>"'
+  [ $# -ge 3 ] || die 'usage: is verdict <issue> approved|killed "<one-sentence reason>"'
   local n=$1 v=$2; shift 2
   local reason="$*"
 
@@ -216,31 +216,31 @@ cmd_verdict() {
   stage=$(stage_of "$labels")
 
   [ "$state" = OPEN ] || die "#$n is already closed."
-  has "$labels" ms:idea || die "#$n is not an idea issue (no ms:idea)."
+  has "$labels" is:idea || die "#$n is not an idea issue (no is:idea)."
   case "$stage" in
-    ms:ready) ;;
-    ms:blocked)
+    is:ready) ;;
+    is:blocked)
       [ "$v" = killed ] \
-        || die "#$n is ms:blocked. It can be killed, but not approved unresearched. Retry it first: ms retry $n" ;;
-    ms:running) die "#$n has a run in flight (ms:running). Wait for it to reach ms:ready." ;;
-    ms:captured) die "#$n has not been researched yet (ms:captured)." ;;
+        || die "#$n is is:blocked. It can be killed, but not approved unresearched. Retry it first: is retry $n" ;;
+    is:running) die "#$n has a run in flight (is:running). Wait for it to reach is:ready." ;;
+    is:captured) die "#$n has not been researched yet (is:captured)." ;;
     *) die "#$n has no stage label, so its state is unknown. Fix its labels first." ;;
   esac
 
   # Order is load-bearing: the verdict guard fires on close and checks for a verdict
   # label and a human comment, so both must be in place before the close.
-  gh issue edit "$n" --remove-label "$stage" --add-label "ms:$v" >/dev/null \
-    || die "could not set ms:$v on #$n. Nothing else was changed."
+  gh issue edit "$n" --remove-label "$stage" --add-label "is:$v" >/dev/null \
+    || die "could not set is:$v on #$n. Nothing else was changed."
 
   local word=Approved; [ "$v" = killed ] && word=Killed
   gh issue comment "$n" --body "**$word.** $reason" >/dev/null \
-    || die "#$n is labelled ms:$v but the reason comment failed. It is still open: add the reason, then close it."
+    || die "#$n is labelled is:$v but the reason comment failed. It is still open: add the reason, then close it."
 
   local why=completed; [ "$v" = killed ] && why='not planned'
   gh issue close "$n" --reason "$why" >/dev/null \
     || die "#$n has its verdict and reason but did not close. Close it by hand."
 
-  echo "#$n closed as ms:$v."
+  echo "#$n closed as is:$v."
 }
 
 cmd_retry() {
@@ -251,7 +251,7 @@ cmd_retry() {
       *) [ -z "$n" ] && [[ $a =~ ^[0-9]+$ ]] && n=$a || die "unexpected argument: $a" ;;
     esac
   done
-  [ -n "$n" ] || die 'usage: ms retry <issue> [--grill]'
+  [ -n "$n" ] || die 'usage: is retry <issue> [--grill]'
 
   local line state labels stage
   line=$(issue_line "$n") || exit 1
@@ -259,30 +259,30 @@ cmd_retry() {
   stage=$(stage_of "$labels")
 
   [ "$state" = OPEN ] || die "#$n is closed."
-  has "$labels" ms:idea || die "#$n is not an idea issue (no ms:idea)."
-  [ "$stage" != ms:running ] \
-    || die "#$n has a run in flight (ms:running). A second run would be refused anyway."
+  has "$labels" is:idea || die "#$n is not an idea issue (no is:idea)."
+  [ "$stage" != is:running ] \
+    || die "#$n has a run in flight (is:running). A second run would be refused anyway."
 
   if [ $grill = 1 ]; then
-    # ms:ready or ms:blocked -> ms:running, via dispatch. The workflow does the claim.
+    # is:ready or is:blocked -> is:running, via dispatch. The workflow does the claim.
     case "$stage" in
-      ms:ready|ms:blocked) ;;
+      is:ready|is:blocked) ;;
       *) die "#$n is ${stage:-unstaged}. Only a ready or blocked idea can be re-grilled." ;;
     esac
     gh workflow run research.yml -f issue="$n" >/dev/null \
       || die "could not dispatch the grill for #$n"
     echo "Dispatched a grill-only run for #$n."
   else
-    # ms:blocked -> ms:captured, which restarts research and grill from scratch.
+    # is:blocked -> is:captured, which restarts research and grill from scratch.
     case "$stage" in
-      ms:blocked) ;;
-      ms:ready) die "#$n is ms:ready. Re-running research on it is not a legal move; to re-grill it alone, use: ms retry $n --grill" ;;
-      ms:captured) die "#$n is already ms:captured and waiting for research." ;;
+      is:blocked) ;;
+      is:ready) die "#$n is is:ready. Re-running research on it is not a legal move; to re-grill it alone, use: is retry $n --grill" ;;
+      is:captured) die "#$n is already is:captured and waiting for research." ;;
       *) die "#$n has no stage label. Fix its labels first." ;;
     esac
-    gh issue edit "$n" --remove-label ms:blocked --add-label ms:captured >/dev/null \
-      || die "could not move #$n back to ms:captured"
-    echo "#$n is ms:captured again; research and grill will re-run."
+    gh issue edit "$n" --remove-label is:blocked --add-label is:captured >/dev/null \
+      || die "could not move #$n back to is:captured"
+    echo "#$n is is:captured again; research and grill will re-run."
   fi
 }
 
@@ -302,5 +302,5 @@ case "${1:-}" in
     "cmd_$cmd" "$@"
     ;;
   ''|-h|--help|help) usage ;;
-  *) die "unknown command '$1'. Run: ms help" ;;
+  *) die "unknown command '$1'. Run: is help" ;;
 esac

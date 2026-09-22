@@ -22,16 +22,16 @@ Put it in the issue.
 
 ## The label state machine
 
-Every label this pipeline reads or writes is namespaced `ms:` — the repo also carries
+Every label this pipeline reads or writes is namespaced `is:` — the repo also carries
 GitHub's stock labels, and the prefix is what separates machine state from a label a
 human picked off the list. A new pipeline label takes the prefix too.
 
-Every idea issue carries `ms:idea` plus **exactly one** stage label:
+Every idea issue carries `is:idea` plus **exactly one** stage label:
 
-- `ms:captured` — filed, not yet worked on. Adding it starts the pipeline.
-- `ms:running` — the research or grill job is in flight.
-- `ms:ready` — research and grill comments are posted; waiting for a human verdict.
-- `ms:blocked` — a job failed; its comment names the step.
+- `is:captured` — filed, not yet worked on. Adding it starts the pipeline.
+- `is:running` — the research or grill job is in flight.
+- `is:ready` — research and grill comments are posted; waiting for a human verdict.
+- `is:blocked` — a job failed; its comment names the step.
 
 Stage labels are mutually exclusive: whatever adds one must remove the one it replaces
 in the same operation. The workflow finds them by exact name (the `STAGES` pattern in
@@ -39,49 +39,49 @@ in the same operation. The workflow finds them by exact name (the `STAGES` patte
 
 Legal transitions, and nothing else:
 
-- *(none)* → `ms:captured` — a human or the `ms` plugin's capture skill, when the idea
+- *(none)* → `is:captured` — a human or the `idea-space` plugin's capture skill, when the idea
   is filed.
-- `ms:captured` → `ms:running` — the research job, at start, before the model is
-  called. The issue stays `ms:running` through the grill job that follows in the same
+- `is:captured` → `is:running` — the research job, at start, before the model is
+  called. The issue stays `is:running` through the grill job that follows in the same
   run.
-- `ms:running` → `ms:ready` — the grill job, after the critique comment is posted.
-- `ms:running` → `ms:blocked` — either job, on failure of any step.
-- `ms:blocked` → `ms:captured` — a human, deliberately, to re-run research and grill.
-- `ms:ready` or `ms:blocked` → `ms:running` — a human dispatching the workflow to retry
+- `is:running` → `is:ready` — the grill job, after the critique comment is posted.
+- `is:running` → `is:blocked` — either job, on failure of any step.
+- `is:blocked` → `is:captured` — a human, deliberately, to re-run research and grill.
+- `is:ready` or `is:blocked` → `is:running` — a human dispatching the workflow to retry
   the grill alone: `gh workflow run research.yml -f issue=<n>`.
-- `ms:ready` → closed with `ms:approved` or `ms:killed` — a human.
-- `ms:blocked` → closed with `ms:killed` — a human, abandoning it.
+- `is:ready` → closed with `is:approved` or `is:killed` — a human.
+- `is:blocked` → closed with `is:killed` — a human, abandoning it.
 
 Two guards matter:
 
-- Never add `ms:captured` to, or dispatch a grill for, an issue carrying `ms:running`.
+- Never add `is:captured` to, or dispatch a grill for, an issue carrying `is:running`.
   A job is in flight, and the workflow will refuse the second run.
-- Never re-run anything on a `ms:ready` issue unless a human has deliberately chosen to.
+- Never re-run anything on a `is:ready` issue unless a human has deliberately chosen to.
 
 ## Closing an issue
 
 Only a human closes an idea issue, and always with both:
 
-1. Exactly one verdict label — `ms:approved` or `ms:killed`.
+1. Exactly one verdict label — `is:approved` or `is:killed`.
 2. A closing comment giving the reason in one sentence.
 
 An issue closed without a verdict label and a stated reason is a lost idea. The reason
 is the entire point of keeping killed ideas around.
 
-This one is enforced. `verdict-guard.yml` watches every close of an `ms:idea` issue: a
+This one is enforced. `verdict-guard.yml` watches every close of an `is:idea` issue: a
 missing or doubled verdict label reopens it with a comment saying so, and a verdict
 with no human comment after it draws a comment but no reopen — that second check is a
 heuristic (it reads "newest comment is the bot" as "nobody gave a reason") and so it
 never fights you over a guess.
 
-## The `ms` plugin
+## The `idea-space` plugin
 
-`plugins/ms/` is a Claude Code and Codex plugin for the human side of this state
+`plugins/idea-space/` is a Claude Code and Codex plugin for the human side of this state
 machine: capture, status, verdict, retry, and label setup. This repo is its
 marketplace for both tools (`.claude-plugin/marketplace.json` and
 `.agents/plugins/marketplace.json`).
 
-Every rule the plugin enforces lives in one script, `plugins/ms/scripts/ms`. The skills
+Every rule the plugin enforces lives in one script, `plugins/idea-space/scripts/is`. The skills
 are thin wrappers around it, so the two tools cannot drift apart: change a rule in the
 script, never in a skill. The script stores nothing — it reads and writes issues
 through `gh` — so it does not break the rule that issues are the only state store.
@@ -93,7 +93,7 @@ When you change a transition in this file, change it in the script too.
 Search closed, killed ideas for a near-duplicate first:
 
 ```bash
-gh issue list --state closed --label ms:killed --search "<key terms>"
+gh issue list --state closed --label is:killed --search "<key terms>"
 ```
 
 If anything looks close, surface it to the human — issue number, title, and the
